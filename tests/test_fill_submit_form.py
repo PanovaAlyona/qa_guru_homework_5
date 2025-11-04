@@ -1,6 +1,5 @@
 import os
 import time
-
 from selene import browser, have, be, by
 
 
@@ -8,7 +7,7 @@ def test_fill_submit_form(setup_browser):
     browser.open('https://demoqa.com/automation-practice-form')
     browser.element(by.text('Practice Form')).should(be.visible)  # Ждем заголовок
 
-
+# Заполняем основные данные
     browser.element('#firstName').type('Alex')
     browser.element('#lastName').type('Bagel')
     browser.element('#userEmail').type('alexbagel@mail.ru')
@@ -35,9 +34,22 @@ def test_fill_submit_form(setup_browser):
     browser.element(by.text('Music')).click()
 
 # Загружаем файл
-    image_path = os.path.join(os.path.dirname(__file__), '..', 'mount.jpg')
-    absolute_path = os.path.abspath(image_path)
-    browser.element('#uploadPicture').send_keys(absolute_path)
+    browser.element('#uploadPicture').send_keys(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'mount.jpg'))
 
+# Заполняем адрес
+    browser.element('#currentAddress').type('Lomonosov str. 8')
 
+    browser.element('#state').click()
+    browser.element('.css-26l3qy-menu').with_(timeout=5).should(be.visible)
+    browser.element('#react-select-3-option-2').click()
+
+    browser.element('#city').click()
+    browser.element('.css-26l3qy-menu').with_(timeout=5).should(be.visible)
+    browser.element('#react-select-4-option-1').click()
+
+# Отправляем форму
+    browser.element('#submit').click()
+
+# Проверяем успешную отправку формы
+    assert browser.element('#example-modal-sizes-title-lg').should(have.exact_text('Thanks for submitting the form'))
     time.sleep(10)
