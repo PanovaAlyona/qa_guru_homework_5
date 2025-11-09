@@ -1,6 +1,7 @@
 import os
 import time
-from selene import browser, have, be, by
+from selene import browser, have, be, by, query
+from selene.core.command import js
 
 
 def test_fill_submit_form(setup_browser):
@@ -38,6 +39,7 @@ def test_fill_submit_form(setup_browser):
 
 # Заполняем адрес
     browser.element('#currentAddress').type('Lomonosov str. 8')
+    browser.element('#submit').perform(js.scroll_into_view)
 
     browser.element('#state').click()
     browser.element('.css-26l3qy-menu').with_(timeout=5).should(be.visible)
@@ -51,5 +53,38 @@ def test_fill_submit_form(setup_browser):
     browser.element('#submit').click()
 
 # Проверяем успешную отправку формы
-    assert browser.element('#example-modal-sizes-title-lg').should(have.exact_text('Thanks for submitting the form'))
+    #browser.element('#example-modal-sizes-title-lg').should(have.exact_text('Thanks for submitting the form'))(be.visible)
+
+    expected_data = {
+        "Student Name": "Alex Bagel",
+        "Student Email": "alexbagel@mail.ru",
+        "Gender": "Male",
+        "Mobile": "9021778990",
+        "Date of Birth": "19 June,1990",
+        "Subjects": "English",
+        "Hobbies": "Sports, Music",
+        "Picture": "mount.jpg",
+        "Address": "Lomonosov str. 8",
+        "State and City": "Haryana Panipat"
+    }
+
+    # Получаем все строки таблицы
+    rows = browser.all('tbody tr')
+
+    for row in rows:
+        # Получаем ячейки в строке
+        cells = row.all('td')
+        if cells.should(have.size(2)):
+            field_name = cells.first.get(query.text)
+            actual_value = cells.second.get(query.text)
+
+            # Проверяем, есть ли поле в ожидаемых данных
+            if field_name in expected_data:
+                expected_value = expected_data[field_name]
+                assert actual_value == expected_value, (
+                    f"Поле '{field_name}': ожидалось '{expected_value}', "
+                    f"получено '{actual_value}'"
+                )
+                print(f"✓ {field_name}: {actual_value}")
+
     time.sleep(10)
